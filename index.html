@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дерево воспоминаний Ведущих МП</title>
+    <style>
+        /* Основные стили */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #e94560;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-style: italic;
+            color: #a1a1a1;
+            margin-top: 10px;
+        }
+        
+        .warning {
+            background-color: #2d142c;
+            padding: 15px;
+            border-left: 5px solid #e94560;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        /* Стили для дерева */
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #e94560;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 3px;
+        }
+        
+        .era {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+        
+        .era::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -17px;
+            background-color: #1a1a2e;
+            border: 4px solid #e94560;
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .left {
+            left: 0;
+        }
+        
+        .right {
+            left: 50%;
+        }
+        
+        .left::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            right: 30px;
+            border: medium solid #1a1a2e;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #1a1a2e;
+        }
+        
+        .right::before {
+            content: " ";
+            height: 0;
+            position: absolute;
+            top: 22px;
+            width: 0;
+            z-index: 1;
+            left: 30px;
+            border: medium solid #1a1a2e;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #1a1a2e transparent transparent;
+        }
+        
+        .right::after {
+            left: -16px;
+        }
+        
+        .era-content {
+            padding: 20px 30px;
+            background-color: #16213e;
+            position: relative;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .era-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .era-date {
+            font-weight: bold;
+            color: #e94560;
+            margin-bottom: 10px;
+        }
+        
+        .leader {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #333;
+        }
+        
+        .leader:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .leader-name {
+            font-weight: bold;
+            color: #f1c40f;
+        }
+        
+        .leader-position {
+            font-style: italic;
+            color: #a1a1a1;
+            font-size: 0.9em;
+        }
+        
+        .leader-info {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #bbb;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .status-active {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .status-unknown {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-removed {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        /* Адаптивность */
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .era {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .era::before {
+                left: 60px;
+                border: medium solid #1a1a2e;
+                border-width: 10px 10px 10px 0;
+                border-color: transparent #1a1a2e transparent transparent;
+            }
+            
+            .left::after, .right::after {
+                left: 15px;
+            }
+            
+            .right {
+                left: 0%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Дерево воспоминаний Ведущих МП</h1>
+            <div class="subtitle">История руководства мероприятий</div>
+        </header>
+        
+        <div class="warning">
+            <strong>Важно:</strong> История до 25.06.2023 утеряна. Данные собраны из сохранившихся записей.
+        </div>
+        
+        <div class="timeline">
+            <!-- 2023 год -->
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">07.01.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Илюша Ли</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 484741815573151773 | VK: <a href="https://vk.com/id558231072" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">22.03.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Amorpheus_Delanetti</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 375903224345133059 | VK: <a href="https://vk.com/id551406046" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Илюша Ли</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 484741815573151773 | VK: <a href="https://vk.com/id558231072" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">30.07.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Lezhak_Depressed</div>
+                        <div class="leader-position">Главный Ведущий МП</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">24.08.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Lezhak</div>
+                        <div class="leader-position">Главный Ведущий МП</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Melkiy_Carse</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">13.09.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Denis_Melnik</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 956312688399614012</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">15.09.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Ilya_Rivers</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 798823082865328158</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">16.10.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Ilya_Rivers</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 798823082865328158</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Rafael_Morrison</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 540759423807913984 | Статус: 1/3</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">04.11.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Ilya_Rivers</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 798823082865328158</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">26.11.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Ilya_Rivers</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 798823082865328158</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Melkiy_Carse (ВРИО)</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Hubert</div>
+                        <div class="leader-position">Помощник главного Ведущего</div>
+                        <span class="status status-unknown">Неизвестно</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">08.12.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Alexander_Galichy (ВРИО)</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Melkiy_Carse (ВРИО)</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 835055128057872416</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2024 год -->
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">17.12.2023</div>
+                    <div class="leader">
+                        <div class="leader-name">Melkiy_Carse</div>
+                        <div class="leader-position">Главный ведущий</div>
+                        <div class="leader-info">ID: 835055128057872416</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Illia_Leen</div>
+                        <div class="leader-position">Заместитель Главного ведущего</div>
+                        <div class="leader-info">ID: 484741815573151773</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">04.01.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Vova_Kamatov (ВРИО)</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 835055128057872416</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Illia_Lean</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 484741815573151773</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">05.01.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Vova_Kamatov (ВРИО)</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 540759423807913984</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Melkiy_Carse</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">14.01.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Shadow_Cowen</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 639466264846139392</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Blister_Conflicted</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 639466264846139392 | Статус: 0/3</div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">10.02.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Shadow_Cowen</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 639466264846139392 | VK: <a href="https://vk.com/id594803609" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">10.02.2024 (позже)</div>
+                    <div class="leader">
+                        <div class="leader-name">Shadow_Cowen</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 639466264846139392 | VK: <a href="https://vk.com/id594803609" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jakcson</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">11.02.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Illia_Lean</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 484741815573151773 | VK: <a href="https://vk.com/offniceizzy" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jakcson</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">14.02.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Shadow_Cowen</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">VK: <a href="https://vk.com/id594803609" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jakcson</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">15.02.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Jastin_Prokopov</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">VK: <a href="https://vk.com/41ter04ek" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jakcson</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">24.03.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Hubert_Cowen</div>
+                        <div class="leader-position">Куратор раздела</div>
+                        <div class="leader-info">ID: 922101248616955935 | VK: <a href="https://vk.com/kubovache" target="_blank">ссылка</a></div>
+                        <span class="status status-unknown">Неизвестно</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">JastinProkopov</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 1102832890930274315 | VK: <a href="https://vk.com/41ter04ek" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">JakeJakcson</div>
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era left">
+                <div class="era-content">
+                    <div class="era-date">24.03.2024 (позже)</div>
+                    <div class="leader">
+                        <div class="leader-name">Hubert_Cowen</div>
+                        <div class="leader-position">Куратор раздела</div>
+                        <div class="leader-info">ID: 922101248616955935 | VK: <a href="https://vk.com/kubovache" target="_blank">ссылка</a></div>
+                        <span class="status status-unknown">Неизвестно</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jakcson</div>
+                        <div class="leader-position">Главный Ведущий</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-removed">Снят</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель Главного Ведущего</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era right">
+                <div class="era-content">
+                    <div class="era-date">28.04.2024</div>
+                    <div class="leader">
+                        <div class="leader-name">Asteria_Manson</div>
+                        <div class="leader-position">Куратор раздела</div>
+                        <div class="leader-info">ID: 922101248616955935 | VK: <a href="https://vk.com/kubovache" target="_blank">ссылка</a></div>
+                        <span class="status status-unknown">Неизвестно</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-name">Jake_Jackson</div>
+                        <div class="leader-position">Главный ведущий мероприятий</div>
+                        <div class="leader-info">ID: 599182985278914560 | VK: <a href="https://vk.com/chyxan228" target="_blank">ссылка</a></div>
+                        <span class="status status-unknown">Неизвестно</span>
+                    </div>
+                    <div class="leader">
+                        <div class="leader-position">Заместитель главного ведущего мероприятий</div>
+                        <div class="leader-info">Вакантно</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            Дерево воспоминаний Ведущих МП | Последнее обновление: 28.04.2024
+        </footer>
+    </div>
+</body>
+</html>
